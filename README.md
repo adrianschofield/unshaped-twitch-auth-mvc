@@ -5,12 +5,12 @@ A simple MVC application which shows how to use the Twitch oAuth flow
 
 Create an appsettings.json containing a section like this:
 
-"Apps": {
+`"Apps": {
     "ClientId" :"CLIENTID HERE",
     "ClientSecret": "CLIENT SECRET HERE",
     "CallbackURI": "https://localhost:5001/twitch/callback",
     "AppName": "APP NAME HERE"
-  },
+  },`
 
   Note that you app configuration on Twitch must have the callback URI set to https://localhost:5001/twitch/callback
 
