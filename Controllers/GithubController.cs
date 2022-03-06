@@ -14,19 +14,19 @@ using Microsoft.Extensions.Configuration;
 
 using Newtonsoft.Json;
 
-// This controller deals with the callback from Twitch
+// This controller deals with the callback from Github
 
 namespace twitch_auth_mvc.Controllers
 {
-    public class TwitchController : Controller
+    public class GithubController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
-        private string twitchClientId;
-        private string twitchClientSecret;
-        private string twitchRedirectUri;
+        private string githubClientId;
+        private string githubClientSecret;
+        private string githubRedirectUri;
 
-        public TwitchController(ILogger<HomeController> logger, IConfiguration configuration)
+        public GithubController(ILogger<HomeController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
@@ -36,16 +36,15 @@ namespace twitch_auth_mvc.Controllers
         {
             // Set up the variables we need from Configuration
             string token = "No Token";
-            twitchRedirectUri = _configuration.GetValue<string>("Apps:TwitchCallbackURI");
-            twitchClientSecret = _configuration.GetValue<string>("Apps:TwitchClientSecret");
-            twitchClientId = _configuration.GetValue<string>("Apps:TwitchClientId");
-            // "https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=5lc2pznnxzs8gijvw7qgaw8eoisj6nd&redirect_uri=https://localhost:5001/twitch/callback&scope=channel_read&state=123456"
-
-            // DBG
-            // _logger.LogDebug("In the Twitch callback");
+            githubRedirectUri = _configuration.GetValue<string>("Apps:GithubCallbackURI");
+            githubClientSecret = _configuration.GetValue<string>("Apps:GithubClientSecret");
+            githubClientId = _configuration.GetValue<string>("Apps:GithubClientId");
             
-            // Start the call to Twitch to exchange the code for the token
-            List<string> myResult = TwitchAuthorizationApi(code);
+            // DBG
+            // _logger.LogDebug("In the Github callback");
+            
+            // Start the call to Github to exchange the code for the token
+            List<string> myResult = GithubAuthorizationApi(code);
            
             if (myResult.Count == 1) {
                 token = myResult.First();
@@ -60,21 +59,19 @@ namespace twitch_auth_mvc.Controllers
 
     
 
-        private List<string>TwitchAuthorizationApi(string code)
+        private List<string>GithubAuthorizationApi(string code)
         {
             HttpWebRequest myWebRequest = null;
             ASCIIEncoding encoding = new ASCIIEncoding();
             Dictionary<string, string> postDataDictionary = new Dictionary<string, string>();
             List<string> result = new List<string>();
 
-            // We need to prepare the POST data ahead of time, Add each entry required by the Twitch Authorization Code Flow
+            // We need to prepare the POST data ahead of time, Add each entry required by the Github Authorization Code Flow
             // Then spin through URLEncoding the keys and values and joining them into one string using & and =
 
-            postDataDictionary.Add("client_id", twitchClientId);
-            postDataDictionary.Add("client_secret", twitchClientSecret);
-            postDataDictionary.Add("grant_type", "authorization_code");
-            postDataDictionary.Add("redirect_uri", twitchRedirectUri);
-            //postDataDictionary.Add("state", "123456");
+            postDataDictionary.Add("client_id", githubClientId);
+            postDataDictionary.Add("client_secret", githubClientSecret);
+            postDataDictionary.Add("redirect_uri", githubRedirectUri);
             postDataDictionary.Add("code", code);
 
             string postData = "";
@@ -89,14 +86,15 @@ namespace twitch_auth_mvc.Controllers
             byte[] byte1 = encoding.GetBytes(postData);
 
             // OK set up our request for the final step in the Authorization Code Flow
-            // This is the destination URI as described in https://dev.twitch.tv/docs/v5/guides/authentication/
+            // This is the destination URI as described in https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps
 
-            myWebRequest = WebRequest.CreateHttp("https://id.twitch.tv/oauth2/token");
+            myWebRequest = WebRequest.CreateHttp("https://github.com/login/oauth/access_token");
 
             // This request is a POST with the required content type
 
             myWebRequest.Method = "POST";
-            myWebRequest.ContentType = "application/x-www-form-urlencoded";
+            // myWebRequest.ContentType = "application/x-www-form-urlencoded";
+            myWebRequest.Accept = "application/json";
 
             // Set the request length based on our byte array
 
@@ -157,15 +155,15 @@ namespace twitch_auth_mvc.Controllers
                 response.Close();
             }
 
-            // We got the jsonResponse from Twitch let's Deserialize it,
+            // We got the jsonResponse from Github let's Deserialize it,
             // I'm using Newtonsoft - Install-Package Newtonsoft.Json -Version 9.0.1
             // Class for deserializing is defined below
 
-            TwitchAuthResponse myAuthResponse = null;
+            GithubAuthResponse myAuthResponse = null;
 
             try
             {
-                myAuthResponse = JsonConvert.DeserializeObject<TwitchAuthResponse>(jsonResponse);
+                myAuthResponse = JsonConvert.DeserializeObject<GithubAuthResponse>(jsonResponse);
             }
             catch(Exception ex)
             {
@@ -173,9 +171,9 @@ namespace twitch_auth_mvc.Controllers
                 throw ex;
             }
             
-            //Update the MainWindow TextBox with the access_token
-            //You never need to display the access_token in a real world situation, just grab it and use
-            //it in your authenticated Twitch API requests
+            // Update the MainWindow TextBox with the access_token
+            // You never need to display the access_token in a real world situation, just grab it and use
+            // it in your authenticated Github API requests
 
             result.Add(string.Format($"{myAuthResponse.access_token}"));
 
@@ -183,10 +181,10 @@ namespace twitch_auth_mvc.Controllers
         }
     }
 
-    public class TwitchAuthResponse
+    public class GithubAuthResponse
     {
         public string access_token { get; set; }
-        public string refresh_token { get; set; }
-        public List<string> scope { get; set; }
+        public string token_type { get; set; }
+        public string scope { get; set; }
     }  
 }
