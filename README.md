@@ -5,12 +5,12 @@ A simple MVC application which shows how to use the Twitch oAuth flow
 
 Create an appsettings.json containing a section like this:
 
-"Apps": {
-    "TwitchClientId" :"CLIENTID HERE",
-    "TwitchClientSecret": "CLIENT SECRET HERE",
-    "TwitchCallbackURI": "https://localhost:5001/twitch/callback",
-    "TwitchAppName": "APP NAME HERE"
-  },
+`"Apps": {
+    "ClientId" :"CLIENTID HERE",
+    "ClientSecret": "CLIENT SECRET HERE",
+    "CallbackURI": "https://localhost:5001/twitch/callback",
+    "AppName": "APP NAME HERE"
+  },`
 
   Note that you app configuration on Twitch must have the callback URI set to https://localhost:5001/twitch/callback
 
@@ -38,10 +38,10 @@ Create an appsettings.json containing a section like this:
 
 This is a very similar flow abd the results are the same but you will need to add the following configuration
 
-"Apps": {
+`"Apps": {
     "GithubClientId" :"CLIENTID HERE",
     "GithubClientSecret": "CLIENT SECRET HERE",
     "GithubCallbackURI": "https://localhost:5001/github/callback"
-  },
+  },`
 
 Make sure that you use https://localhost:5001/github/callback as your callback uri in your oAuth app setup on Github
