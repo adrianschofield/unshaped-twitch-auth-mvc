@@ -18,15 +18,15 @@ using Newtonsoft.Json;
 
 namespace twitch_auth_mvc.Controllers
 {
-    public class TwitchController : Controller
+    public class AutodeskController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
-        private string twitchClientId;
-        private string twitchClientSecret;
-        private string twitchRedirectUri;
+        private string autodeskClientId;
+        private string autodeskClientSecret;
+        private string autodeskRedirectUri;
 
-        public TwitchController(ILogger<HomeController> logger, IConfiguration configuration)
+        public AutodeskController(ILogger<HomeController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
@@ -36,16 +36,21 @@ namespace twitch_auth_mvc.Controllers
         {
             // Set up the variables we need from Configuration
             string token = "No Token";
-            twitchRedirectUri = _configuration.GetValue<string>("Apps:TwitchCallbackURI");
-            twitchClientSecret = _configuration.GetValue<string>("Apps:TwitchClientSecret");
-            twitchClientId = _configuration.GetValue<string>("Apps:TwitchClientId");
+            autodeskRedirectUri = _configuration.GetValue<string>("Apps:AutodeskCallbackURI");
+            autodeskClientSecret = _configuration.GetValue<string>("Apps:AutodeskClientSecret");
+            autodeskClientId = _configuration.GetValue<string>("Apps:AutodeskClientId");
             // "https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=5lc2pznnxzs8gijvw7qgaw8eoisj6nd&redirect_uri=https://localhost:5001/twitch/callback&scope=channel_read&state=123456"
 
+            // This is odd and I've never needed to do this before but this is base64 encoded
+            // clientid:clientsecret
+            // I need the base64 encoded string later for the Authorization header
+            string auth = Base64Encode($"{autodeskClientId}:{autodeskClientSecret}");
+            
             // DBG
             // _logger.LogDebug("In the Twitch callback");
             
-            // Start the call to Twitch to exchange the code for the token
-            var myResult = TwitchAuthorizationApi(code);
+            // Start the call to Autodesk to exchange the code for the token
+            var myResult = AutodeskAuthorizationApi(code, auth);
            
             /* if (myResult.Count == 1) {
                 token = myResult.First();
@@ -54,7 +59,7 @@ namespace twitch_auth_mvc.Controllers
             // Set up the view data
             ViewData["Code"] = code;
             ViewData["Token"] = myResult.access_token;
-            ViewData["Refresh"] = myResult.refresh_token;
+            ViewData["Refresh"] = myResult.access_token;
             ViewData["Expires"] = myResult.expires_in;
 
             return View();
@@ -62,7 +67,7 @@ namespace twitch_auth_mvc.Controllers
 
     
 
-        private TwitchAuthResponse TwitchAuthorizationApi(string code)
+        private AutodeskAuthResponse AutodeskAuthorizationApi(string code, string auth)
         {
             HttpWebRequest myWebRequest = null;
             ASCIIEncoding encoding = new ASCIIEncoding();
@@ -72,10 +77,10 @@ namespace twitch_auth_mvc.Controllers
             // We need to prepare the POST data ahead of time, Add each entry required by the Twitch Authorization Code Flow
             // Then spin through URLEncoding the keys and values and joining them into one string using & and =
 
-            postDataDictionary.Add("client_id", twitchClientId);
-            postDataDictionary.Add("client_secret", twitchClientSecret);
+            // postDataDictionary.Add("client_id", autodeskClientId);
+            // postDataDictionary.Add("client_secret", autodeskClientSecret);
             postDataDictionary.Add("grant_type", "authorization_code");
-            postDataDictionary.Add("redirect_uri", twitchRedirectUri);
+            postDataDictionary.Add("redirect_uri", autodeskRedirectUri);
             //postDataDictionary.Add("state", "123456");
             postDataDictionary.Add("code", code);
 
@@ -93,12 +98,13 @@ namespace twitch_auth_mvc.Controllers
             // OK set up our request for the final step in the Authorization Code Flow
             // This is the destination URI as described in https://dev.twitch.tv/docs/v5/guides/authentication/
 
-            myWebRequest = WebRequest.CreateHttp("https://id.twitch.tv/oauth2/token");
+            myWebRequest = WebRequest.CreateHttp("https://developer.api.autodesk.com/authentication/v2/token");
 
             // This request is a POST with the required content type
 
             myWebRequest.Method = "POST";
             myWebRequest.ContentType = "application/x-www-form-urlencoded";
+            myWebRequest.Headers.Add("Authorization", $"Basic {auth}");
 
             // Set the request length based on our byte array
 
@@ -159,15 +165,15 @@ namespace twitch_auth_mvc.Controllers
                 response.Close();
             }
 
-            // We got the jsonResponse from Twitch let's Deserialize it,
+            // We got the jsonResponse from Autodesk let's Deserialize it,
             // I'm using Newtonsoft - Install-Package Newtonsoft.Json -Version 9.0.1
             // Class for deserializing is defined below
 
-            TwitchAuthResponse myAuthResponse = null;
+            AutodeskAuthResponse myAuthResponse = null;
 
             try
             {
-                myAuthResponse = JsonConvert.DeserializeObject<TwitchAuthResponse>(jsonResponse);
+                myAuthResponse = JsonConvert.DeserializeObject<AutodeskAuthResponse>(jsonResponse);
             }
             catch(Exception ex)
             {
@@ -183,13 +189,19 @@ namespace twitch_auth_mvc.Controllers
 
             return myAuthResponse;
         }
+
+        public static string Base64Encode(string plainText) 
+        {
+        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+        return System.Convert.ToBase64String(plainTextBytes);
+        }
     }
 
-    public class TwitchAuthResponse
+    public class AutodeskAuthResponse
     {
         public string access_token { get; set; }
         public string refresh_token { get; set; }
         public string expires_in { get; set; }
-        public List<string> scope { get; set; }
+        public string token_type { get; set; }
     }  
 }
