@@ -94,6 +94,29 @@ namespace twitch_auth_mvc.Controllers
             return View();
         }
 
+        public IActionResult Miro()
+        {
+            // DBG
+            //_logger.LogDebug("HomeController.cs Github Action");
+
+            // Get the values we need for the initial Autodesk POST
+            // These come from the config in appsettings.json
+            string clientId = _configuration.GetValue<string>("Apps:MiroClientId");
+            string redirectUri = _configuration.GetValue<string>("Apps:MiroCallbackURI");
+
+            // Add them to the ViewData so we can display them
+            ViewData["ClientId"] = clientId;
+            
+            // Finally add the Autodesk URL
+            // This is the url that Autodesk auth needs
+            // <a href="https://developer.api.autodesk.com/authentication/v2/authorize?response_type=code&client_id=F6Dn8ypem1j8P6sUz8IX3pmSsOA99GUT&redirect_uri=http://localhost:8080/oauth/callback/&scope=data:read">Click here to grant access to your data!</a>
+
+            ViewData["AuthURL"] = $"https://miro.com/oauth/authorize?response_type=code&client_id={clientId}&redirect_uri={redirectUri}&scope=boards:read";
+
+            // Return the view
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
