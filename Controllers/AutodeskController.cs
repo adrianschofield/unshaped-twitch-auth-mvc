@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text;
+using System.Text.Json;
 using System.Net; //required for HttpListenerRequest
 using System.IO; //required for Streaming requests and responses
 using System.Web; //required for HttpUtility - don't forget to add a Reference
@@ -11,8 +12,6 @@ using System.Web; //required for HttpUtility - don't forget to add a Reference
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-
-using Newtonsoft.Json;
 
 // This controller deals with the callback from Twitch
 
@@ -173,7 +172,8 @@ namespace twitch_auth_mvc.Controllers
 
             try
             {
-                myAuthResponse = JsonConvert.DeserializeObject<AutodeskAuthResponse>(jsonResponse);
+                // myAuthResponse = JsonConvert.DeserializeObject<AutodeskAuthResponse>(jsonResponse);
+                myAuthResponse = JsonSerializer.Deserialize<AutodeskAuthResponse>(jsonResponse);
             }
             catch(Exception ex)
             {
