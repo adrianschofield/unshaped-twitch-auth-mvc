@@ -112,11 +112,11 @@ namespace twitch_auth_mvc.Controllers
                 postStream = myWebRequest.GetRequestStream();
                 postStream.Write(byte1, 0, byte1.Length);
             }
+            // TODO Handle this exception better
             catch (Exception ex)
             {
                 //We should log any exception here but I am just going to supress them for this sample
                 result.Add(string.Format("Ex: {0}", ex.Message));
-                throw ex;
             }
             finally
             {
@@ -141,11 +141,11 @@ namespace twitch_auth_mvc.Controllers
                 responseStreamReader = new StreamReader(responseStream);
                 jsonResponse = responseStreamReader.ReadToEnd();
             }
+            // TODO Handle this exception better
             catch (Exception ex)
             {
                 // We should log any exception here but I am just going to supress them for this sample
                 result.Add(string.Format("Ex: {0}", ex.Message));
-                throw ex;
             }
             finally
             {
@@ -165,10 +165,10 @@ namespace twitch_auth_mvc.Controllers
                 //myAuthResponse = JsonConvert.DeserializeObject<GithubAuthResponse>(jsonResponse);
                 myAuthResponse = JsonSerializer.Deserialize<GithubAuthResponse>(jsonResponse);
             }
+            // TODO Handle this exception better
             catch(Exception ex)
             {
                 result.Add(string.Format("Ex: {0}", ex.Message));
-                throw ex;
             }
             
             // Update the MainWindow TextBox with the access_token
