@@ -34,7 +34,8 @@ namespace twitch_auth_mvc.Controllers
         public IActionResult Callback(string code)
         {
             // Set up the variables we need from Configuration
-            string token = "No Token";
+            // TODO work out what I was doing with this variable
+            // string token = "No Token";
             twitchRedirectUri = _configuration.GetValue<string>("Apps:TwitchCallbackURI");
             twitchClientSecret = _configuration.GetValue<string>("Apps:TwitchClientSecret");
             twitchClientId = _configuration.GetValue<string>("Apps:TwitchClientId");
@@ -116,11 +117,11 @@ namespace twitch_auth_mvc.Controllers
                 postStream = myWebRequest.GetRequestStream();
                 postStream.Write(byte1, 0, byte1.Length);
             }
+            // TODO Handle this exception better
             catch (Exception ex)
             {
-                //We should log any exception here but I am just going to supress them for this sample
+                // We should log any exception here but I am just going to supress them for this sample
                 result.Add(string.Format("Ex: {0}", ex.Message));
-                throw ex;
             }
             finally
             {
@@ -145,11 +146,11 @@ namespace twitch_auth_mvc.Controllers
                 responseStreamReader = new StreamReader(responseStream);
                 jsonResponse = responseStreamReader.ReadToEnd();
             }
+            // TODO Handle this exception better
             catch (Exception ex)
             {
                 // We should log any exception here but I am just going to supress them for this sample
                 result.Add(string.Format("Ex: {0}", ex.Message));
-                throw ex;
             }
             finally
             {
@@ -168,16 +169,17 @@ namespace twitch_auth_mvc.Controllers
             {
                 myAuthResponse = JsonSerializer.Deserialize<TwitchAuthResponse>(jsonResponse);
             }
+            // TODO Handle this exception better
             catch(Exception ex)
             {
                 result.Add(string.Format("Ex: {0}", ex.Message));
-                throw ex;
             }
             
-            //Update the MainWindow TextBox with the access_token
-            //You never need to display the access_token in a real world situation, just grab it and use
-            //it in your authenticated Twitch API requests
+            // Update the MainWindow TextBox with the access_token
+            // You never need to display the access_token in a real world situation, just grab it and use
+            // it in your authenticated Twitch API requests
 
+            // TODO I don't do anything with result so my exception handling never logs an error
             // result.Add(string.Format($"{myAuthResponse.access_token}"));
 
             return myAuthResponse;
